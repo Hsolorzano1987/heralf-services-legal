@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página No Encontrada - HerAlf Servicios Legales</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, #f5f9ff 0%, #e8efff 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #1a3a5f;
+        }
+
+        .error-container {
+            text-align: center;
+            padding: 40px;
+            max-width: 600px;
+        }
+
+        .error-icon {
+            font-size: 8rem;
+            margin-bottom: 30px;
+            animation: bounce 2s infinite;
+        }
+
+        .error-code {
+            font-size: 6rem;
+            font-weight: 700;
+            color: #2c5aa0;
+            margin-bottom: 10px;
+            font-family: 'Playfair Display', serif;
+        }
+
+        .error-title {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            color: #1a3a5f;
+        }
+
+        .error-message {
+            font-size: 1.2rem;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            color: #444;
+        }
+
+        .error-actions {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #2c5aa0, #4a7bc8);
+            color: white;
+            box-shadow: 0 8px 25px rgba(44, 90, 160, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(44, 90, 160, 0.4);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: #2c5aa0;
+            border: 2px solid #2c5aa0;
+        }
+
+        .btn-secondary:hover {
+            background: #2c5aa0;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 30px;
+            color: #1a3a5f;
+        }
+
+        .logo-icon {
+            font-size: 2rem;
+            margin-right: 10px;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-10px);
+            }
+            60% {
+                transform: translateY(-5px);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .error-container {
+                padding: 20px;
+            }
+
+            .error-icon {
+                font-size: 6rem;
+            }
+
+            .error-code {
+                font-size: 4rem;
+            }
+
+            .error-title {
+                font-size: 1.5rem;
+            }
+
+            .error-message {
+                font-size: 1rem;
+            }
+
+            .error-actions {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn {
+                width: 100%;
+                max-width: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <div class="logo">
+            <span class="logo-icon">⚖️</span>
+            <span>HerAlf Servicios Legales</span>
+        </div>
+        
+        <div class="error-icon">🔍</div>
+        
+        <div class="error-code">404</div>
+        
+        <h1 class="error-title">Página No Encontrada</h1>
+        
+        <p class="error-message">
+            Lo sentimos, la página que estás buscando no existe o ha sido movida. 
+            Pero no te preocupes, podemos ayudarte a encontrar lo que necesitas.
+        </p>
+        
+        <div class="error-actions">
+            <a href="/" class="btn btn-primary">Volver al Inicio</a>
+            <a href="/#formulario" class="btn btn-secondary">Solicitar Asesoría</a>
+        </div>
+    </div>
+</body>
+</html>
