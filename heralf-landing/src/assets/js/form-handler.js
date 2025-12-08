@@ -1,5 +1,6 @@
-// ✅ CONFIGURACIÓN CORRECTA para API Gateway
-const API_URL = '/formulario';
+﻿// ✅ CONFIGURACIÓN CORRECTA para API Gateway
+// REEMPLAZA con tu URL real del output
+const API_URL = 'https://9g5ejyx94m.execute-api.us-east-1.amazonaws.com/production/formulario';
 
 document.getElementById('legalForm').addEventListener('submit', async function(e) {
     e.preventDefault();
@@ -14,7 +15,7 @@ document.getElementById('legalForm').addEventListener('submit', async function(e
     messageDiv.innerHTML = '';
     
     try {
-        // Obtener datos del formulario (SOLO los necesarios)
+        // Obtener datos del formulario
         const formData = {
             nombre: document.getElementById('nombre').value,
             email: document.getElementById('email').value,
@@ -23,7 +24,7 @@ document.getElementById('legalForm').addEventListener('submit', async function(e
             descripcion: document.getElementById('descripcion').value
         };
         
-        // ✅ ENVIAR a API Gateway (NO directamente a DynamoDB)
+        // ✅ ENVIAR a API Gateway
         const response = await fetch(API_URL, {
             method: 'POST',
             headers: {
@@ -35,7 +36,7 @@ document.getElementById('legalForm').addEventListener('submit', async function(e
         const result = await response.json();
         
         if (response.ok) {
-            // ✅ ÉXITO - Respuesta de API Gateway
+            // ✅ ÉXITO
             messageDiv.innerHTML = `
                 <div class="message success">
                     <strong>${result.message}</strong>
@@ -44,7 +45,7 @@ document.getElementById('legalForm').addEventListener('submit', async function(e
             document.getElementById('legalForm').reset();
             submitBtn.textContent = 'Solicitud Enviada ✓';
         } else {
-            // ❌ ERROR - Respuesta de API Gateway
+            // ❌ ERROR
             throw new Error(result.error || 'Error desconocido');
         }
         
@@ -60,14 +61,3 @@ document.getElementById('legalForm').addEventListener('submit', async function(e
         submitBtn.disabled = false;
     }
 });
-
-// CSS para mensajes
-const style = document.createElement('style');
-style.textContent = `
-    .form-message { margin-top: 20px; }
-    .message { padding: 15px; border-radius: 5px; margin: 10px 0; }
-    .message.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-    .message.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
-`;
-document.head.appendChild(style);

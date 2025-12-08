@@ -1,0 +1,9 @@
+{
+  "name": "form-processor",
+  "version": "1.0.0",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.936.0",
+    "@aws-sdk/util-dynamodb": "^3.936.0",
+    "aws-sdk": "^2.1595.0"
+  }
+}
