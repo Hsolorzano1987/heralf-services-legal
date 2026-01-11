@@ -1,20 +1,30 @@
-# Terraform
+﻿# Terraform
 **/.terraform/*
 *.tfstate
 *.tfstate.*
 terraform.tfstate.backup
 terraform.tfstate.backup-*
+terraform.tfvars
+*.tfvars
+*.tfvars.json
 .terraform.lock.hcl
 
 # Lambda deployments
 lambda.zip
 *.zip
+whatsapp-webhook.zip
 
 # Node modules
 node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+package-lock.json
+
+# AWS credentials
+.aws/
+*.pem
+*.key
 
 # Environment variables
 .env
@@ -34,8 +44,30 @@ Thumbs.db
 
 # Logs
 *.log
+debug.log
 logs/
 
 # Temporary files
 tmp/
 temp/
+
+# Archivos específicos del proyecto
+terraform/response.json
+terraform/main.tf.backup
+src/lambda/package-lock.json
+
+# Archivos generados por build
+infra/*.zip
+infra/.terraform/
+
+# Estados de Terraform locales (ya están en el backup)
+*.tfstate
+*.tfstate.*
+
+# Archivos generados por build
+infra/*.zip
+infra/.terraform/
+
+# Estados de Terraform locales (ya están en el backup)
+*.tfstate
+*.tfstate.*

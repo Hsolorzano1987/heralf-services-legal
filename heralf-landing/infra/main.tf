@@ -1,4 +1,4 @@
-terraform {
+﻿terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
@@ -11,7 +11,7 @@ provider "aws" {
   region = var.aws_region
 }
 
-# Random suffix para nombres únicos
+# Random suffix para nombres Ãºnicos
 resource "random_id" "suffix" {
   byte_length = 4
 }
@@ -21,7 +21,7 @@ locals {
   bucket_name = "${var.project_name}-${random_id.suffix.hex}"
 }
 
-# 1. Bucket S3 para hosting estático
+# 1. Bucket S3 para hosting estÃ¡tico
 resource "aws_s3_bucket" "website" {
   bucket = local.bucket_name
 
@@ -32,7 +32,7 @@ resource "aws_s3_bucket" "website" {
   }
 }
 
-# 2. Configuración de hosting estático
+# 2. ConfiguraciÃ³n de hosting estÃ¡tico
 resource "aws_s3_bucket_website_configuration" "website" {
   bucket = aws_s3_bucket.website.bucket
 
@@ -45,7 +45,7 @@ resource "aws_s3_bucket_website_configuration" "website" {
   }
 }
 
-# 3. Política de acceso público (solo lectura)
+# 3. PolÃ­tica de acceso pÃºblico (solo lectura)
 resource "aws_s3_bucket_policy" "website" {
   bucket = aws_s3_bucket.website.bucket
 
@@ -71,7 +71,7 @@ resource "aws_s3_bucket_policy" "website" {
   })
 }
 
-# 4. Configuración para evitar que el bucket sea público por ACL
+# 4. ConfiguraciÃ³n para evitar que el bucket sea pÃºblico por ACL
 resource "aws_s3_bucket_public_access_block" "website" {
   bucket = aws_s3_bucket.website.bucket
 
@@ -100,7 +100,7 @@ resource "aws_s3_object" "website_files" {
 # 6. DynamoDB Table para guardar leads de formularios
 resource "aws_dynamodb_table" "leads" {
   name         = "${var.project_name}-leads"
-  billing_mode = "PAY_PER_REQUEST"  # ← MODO GRATUITO
+  billing_mode = "PAY_PER_REQUEST"  # â† MODO GRATUITO
   hash_key     = "id"
 
   attribute {
@@ -114,11 +114,16 @@ resource "aws_dynamodb_table" "leads" {
   }
 
   attribute {
+    name = "telefono"  # â† NUEVO: Para bÃºsqueda por WhatsApp
+    type = "S"
+  }
+
+  attribute {
     name = "fecha"
     type = "S"
   }
 
-  # Índices globales secundarios para búsquedas eficientes
+  # Ãndices globales secundarios para bÃºsquedas eficientes
   global_secondary_index {
     name            = "EmailIndex"
     hash_key        = "email"
@@ -130,6 +135,15 @@ resource "aws_dynamodb_table" "leads" {
   global_secondary_index {
     name            = "FechaIndex"
     hash_key        = "fecha"
+    projection_type = "ALL"
+    read_capacity   = 1
+    write_capacity  = 1
+  }
+
+    # ðŸ‘‡ NUEVO: Ãndice para bÃºsqueda por WhatsApp
+  global_secondary_index {
+    name            = "TelefonoIndex"
+    hash_key        = "telefono"
     projection_type = "ALL"
     read_capacity   = 1
     write_capacity  = 1
@@ -147,7 +161,7 @@ resource "aws_cloudfront_origin_access_identity" "website" {
   comment = "Acceso a S3 para ${var.project_name}"
 }
 
-# 8. CLOUDFront - Distribución para el sitio web
+# 8. CLOUDFront - DistribuciÃ³n para el sitio web
 resource "aws_cloudfront_distribution" "website" {
   count = var.enable_cloudfront ? 1 : 0
 
@@ -165,11 +179,11 @@ resource "aws_cloudfront_distribution" "website" {
 
   enabled             = true
   is_ipv6_enabled     = true
-  comment             = "Distribución CloudFront para ${var.project_name}"
+  comment             = "DistribuciÃ³n CloudFront para ${var.project_name}"
   default_root_object = "index.html"
   price_class         = var.cloudfront_price_class
 
-  aliases = []  # Puedes agregar tu dominio después
+  aliases = []  # Puedes agregar tu dominio despuÃ©s
 
   default_cache_behavior {
     allowed_methods  = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
@@ -189,7 +203,7 @@ resource "aws_cloudfront_distribution" "website" {
     default_ttl            = 3600
     max_ttl                = 86400
 
-    # Políticas de seguridad
+    # PolÃ­ticas de seguridad
     response_headers_policy_id = "67f7725c-6f97-4210-82d7-5512b31e9d03"  # SecurityHeadersPolicy
   }
 
@@ -223,7 +237,7 @@ resource "aws_cloudfront_distribution" "website" {
   }
 }
 
-# Outputs para mostrar información importante
+# Outputs para mostrar informaciÃ³n importante
 output "website_url" {
   value = "http://${aws_s3_bucket.website.bucket}.s3-website-${var.aws_region}.amazonaws.com"
 }
@@ -302,7 +316,28 @@ resource "aws_iam_role_policy" "lambda_policy" {
         ]
         Resource = "*"
       },
-      # 👇 NUEVOS PERMISOS PARA COGNITO
+            # ðŸ‘‡ NUEVOS PERMISOS PARA BEDROCK
+      {
+        Effect = "Allow"
+        Action = [
+          "bedrock:InvokeModel",
+          "bedrock:InvokeModelWithResponseStream"
+        ]
+        Resource = [
+          "arn:aws:bedrock:${var.aws_region}::foundation-model/anthropic.claude-3-haiku-20240307-v1:0",
+          "arn:aws:bedrock:${var.aws_region}::foundation-model/anthropic.claude-3-sonnet-20240229-v1:0",
+          "arn:aws:bedrock:${var.aws_region}::foundation-model/meta.llama3-70b-instruct-v1:0"
+        ]
+      },
+      # ðŸ‘‡ NUEVOS PERMISOS PARA STEP FUNCTIONS (para despuÃ©s)
+      {
+        Effect = "Allow"
+        Action = [
+          "states:StartExecution"
+        ]
+        Resource = "*" # Temporalmente
+      },
+      # ðŸ‘‡ NUEVOS PERMISOS PARA COGNITO
       {
         Effect = "Allow"
         Action = [
@@ -317,7 +352,7 @@ resource "aws_iam_role_policy" "lambda_policy" {
 
 # 11. Lambda Function
 resource "aws_lambda_function" "form_processor" {
-  filename         = "lambda.zip"
+  filename         = "form-processor.zip"
   function_name    = "${var.project_name}-form-processor"
   role            = aws_iam_role.lambda_role.arn
   handler         = "form-processor.handler"
@@ -335,7 +370,7 @@ resource "aws_lambda_function" "form_processor" {
   }
 }
 
-# 12. API Gateway REST (NO HTTP) - MÁS CONFIABLE
+# 12. API Gateway REST (NO HTTP) - MÃS CONFIABLE
 resource "aws_api_gateway_rest_api" "main" {
   name        = "${var.project_name}-api"
   description = "API REST para HerAlf Legal"
@@ -356,7 +391,7 @@ resource "aws_api_gateway_resource" "formulario" {
   path_part   = "formulario"
 }
 
-# 14. Método POST
+# 14. MÃ©todo POST
 resource "aws_api_gateway_method" "post" {
   rest_api_id   = aws_api_gateway_rest_api.main.id
   resource_id   = aws_api_gateway_resource.formulario.id
@@ -364,7 +399,7 @@ resource "aws_api_gateway_method" "post" {
   authorization = "NONE"
 }
 
-# 15. Método OPTIONS para CORS
+# 15. MÃ©todo OPTIONS para CORS
 resource "aws_api_gateway_method" "options" {
   rest_api_id   = aws_api_gateway_rest_api.main.id
   resource_id   = aws_api_gateway_resource.formulario.id
@@ -434,7 +469,9 @@ resource "aws_api_gateway_integration_response" "options" {
 resource "aws_api_gateway_deployment" "production" {
   depends_on = [
     aws_api_gateway_integration.lambda,
-    aws_api_gateway_integration.options
+    aws_api_gateway_integration.options,
+    aws_api_gateway_integration.webhook_lambda,      # â† NUEVO
+    aws_api_gateway_integration.webhook_get_integration # â† NUEVO
   ]
 
   rest_api_id = aws_api_gateway_rest_api.main.id
@@ -460,11 +497,11 @@ output "api_gateway_url" {
   value = "${aws_api_gateway_deployment.production.invoke_url}/formulario"
 }
 
-# 23. Cognito User Pool para autenticación
+# 23. Cognito User Pool para autenticaciÃ³n
 resource "aws_cognito_user_pool" "users" {
   name = "${var.project_name}-users"
 
-  # Política de contraseñas seguras
+  # PolÃ­tica de contraseÃ±as seguras
   password_policy {
     minimum_length                   = 8
     require_lowercase                = true
@@ -474,10 +511,10 @@ resource "aws_cognito_user_pool" "users" {
     temporary_password_validity_days = 7
   }
 
-  # Verificación automática de email
+  # VerificaciÃ³n automÃ¡tica de email
   auto_verified_attributes = ["email"]
 
-  # Configuración de MFA (opcional)
+  # ConfiguraciÃ³n de MFA (opcional)
   mfa_configuration = "OFF"
 
   # Esquema de atributos personalizados
@@ -505,7 +542,7 @@ resource "aws_cognito_user_pool" "users" {
     }
   }
 
-  # Configuración de recuperación
+  # ConfiguraciÃ³n de recuperaciÃ³n
   account_recovery_setting {
     recovery_mechanism {
       name     = "verified_email"
@@ -524,13 +561,13 @@ resource "aws_cognito_user_pool_client" "web" {
 
   user_pool_id = aws_cognito_user_pool.users.id
 
-  # Configuración básica de autenticación
+  # ConfiguraciÃ³n bÃ¡sica de autenticaciÃ³n
   explicit_auth_flows = [
     "ALLOW_REFRESH_TOKEN_AUTH",
     "ALLOW_USER_SRP_AUTH"
   ]
 
-  # Configuración OAuth simplificada
+  # ConfiguraciÃ³n OAuth simplificada
   allowed_oauth_flows_user_pool_client = true
   allowed_oauth_flows = ["code"]
   allowed_oauth_scopes = ["email", "openid", "profile"]
@@ -547,12 +584,12 @@ resource "aws_cognito_user_pool_client" "web" {
 
   supported_identity_providers = ["COGNITO"]
 
-  # Configuración de tokens
+  # ConfiguraciÃ³n de tokens
   id_token_validity      = 24
   access_token_validity  = 1
   refresh_token_validity = 30
 
-  # Atributos básicos
+  # Atributos bÃ¡sicos
   read_attributes = [
     "email"
   ]
@@ -661,8 +698,88 @@ resource "aws_cognito_identity_pool_roles_attachment" "main" {
     "authenticated" = aws_iam_role.authenticated.arn
   }
 }
+# 31. Lambda Function para WhatsApp Webhook
+resource "aws_lambda_function" "whatsapp_webhook" {
+  filename      = "whatsapp-webhook.zip"
+  function_name = "${var.project_name}-whatsapp-webhook"
+  role          = aws_iam_role.lambda_role.arn
+  handler       = "whatsapp-webhook.handler"
+  runtime       = "nodejs18.x"
+  timeout       = 30
 
-# 30. Outputs para Cognito
+  environment {
+    variables = {
+      DYNAMODB_TABLE           = aws_dynamodb_table.leads.name
+      WHATSAPP_PHONE_NUMBER_ID = var.whatsapp_phone_number_id
+      WHATSAPP_API_VERSION     = var.whatsapp_api_version
+      BEDROCK_MODEL_ID         = var.bedrock_model_id
+      # El token se manejarÃ¡ via Secrets Manager despuÃ©s
+    }
+  }
+
+  tags = {
+    Project = var.project_name
+  }
+}
+
+# 32. API Gateway Resource para webhook WhatsApp
+resource "aws_api_gateway_resource" "webhook" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  parent_id   = aws_api_gateway_rest_api.main.root_resource_id
+  path_part   = "webhook"
+}
+
+# 33. MÃ©todo POST para webhook
+resource "aws_api_gateway_method" "webhook_post" {
+  rest_api_id   = aws_api_gateway_rest_api.main.id
+  resource_id   = aws_api_gateway_resource.webhook.id
+  http_method   = "POST"
+  authorization = "NONE"
+}
+
+# 34. Integration con Lambda webhook
+resource "aws_api_gateway_integration" "webhook_lambda" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.webhook.id
+  http_method = aws_api_gateway_method.webhook_post.http_method
+
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.whatsapp_webhook.invoke_arn
+}
+
+# 35. MÃ©todo GET para verificaciÃ³n webhook (Meta requiere esto)
+resource "aws_api_gateway_method" "webhook_get" {
+  rest_api_id   = aws_api_gateway_rest_api.main.id
+  resource_id   = aws_api_gateway_resource.webhook.id
+  http_method   = "GET"
+  authorization = "NONE"
+}
+
+# 36. Integration para GET (mock response)
+resource "aws_api_gateway_integration" "webhook_get_integration" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.webhook.id
+  http_method = aws_api_gateway_method.webhook_get.http_method
+
+  type = "MOCK"
+  
+  request_templates = {
+    "application/json" = "{\"statusCode\": 200}"
+  }
+}
+
+# 37. Permiso para Lambda webhook
+resource "aws_lambda_permission" "webhook_api_gw" {
+  statement_id  = "AllowExecutionFromAPIGatewayWebhook"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.whatsapp_webhook.function_name
+  principal     = "apigateway.amazonaws.com"
+
+  source_arn = "${aws_api_gateway_rest_api.main.execution_arn}/*/POST/webhook"
+}
+
+# 38. Outputs para Cognito
 output "cognito_user_pool_id" {
   value = aws_cognito_user_pool.users.id
 }
