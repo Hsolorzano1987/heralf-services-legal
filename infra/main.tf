@@ -355,7 +355,7 @@ resource "aws_lambda_function" "form_processor" {
   filename         = "form-processor.zip"
   function_name    = "${var.project_name}-form-processor"
   role            = aws_iam_role.lambda_role.arn
-  handler         = "form-processor.handler"
+  handler         = "index.handler"
   runtime         = "nodejs18.x"
   timeout         = 30
 
@@ -459,7 +459,7 @@ resource "aws_api_gateway_integration_response" "options" {
   response_parameters = {
     "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
     "method.response.header.Access-Control-Allow-Methods" = "'POST,OPTIONS,GET'"
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+    "method.response.header.Access-Control-Allow-Origin"  = "'https://d3j9ea8ae2wjdm.cloudfront.net'"
   }
 
   depends_on = [aws_api_gateway_integration.options]
@@ -476,6 +476,17 @@ resource "aws_api_gateway_deployment" "production" {
 
   rest_api_id = aws_api_gateway_rest_api.main.id
   stage_name  = "production"
+
+  # Esto fuerza un nuevo despliegue cada vez que cambies la configuración de la API
+  triggers = {
+    redeployment = sha1(jsonencode([
+      aws_api_gateway_resource.formulario,
+      aws_api_gateway_method.post,
+      aws_api_gateway_method.options,
+      aws_api_gateway_integration.lambda,
+      aws_api_gateway_integration.options,
+    ]))
+  }
 
   lifecycle {
     create_before_destroy = true
